@@ -33,13 +33,20 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024 // 50MB limit
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = [
+    const allowedMimeTypes = [
       'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
       'image/heic', 'image/heif', 'image/bmp', 'image/tiff', 'image/svg+xml',
       'video/mp4', 'video/webm', 'video/quicktime',
       'audio/mpeg', 'audio/wav', 'audio/ogg'
     ];
-    if (allowedTypes.includes(file.mimetype)) {
+    const allowedExtensions = [
+      '.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.heif',
+      '.bmp', '.tiff', '.tif', '.svg',
+      '.mp4', '.webm', '.mov',
+      '.mp3', '.wav', '.ogg'
+    ];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedMimeTypes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
       cb(null, true);
     } else {
       cb(new Error('Invalid file type'));
@@ -57,11 +64,14 @@ router.post('/', authMiddleware, upload.single('file'), async (req: AuthRequest,
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Determine file type
+    // Determine file type by mimetype or extension
     let type: 'image' | 'video' | 'audio';
-    if (file.mimetype.startsWith('image/')) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const imageExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.heif', '.bmp', '.tiff', '.tif', '.svg'];
+    const videoExts = ['.mp4', '.webm', '.mov'];
+    if (file.mimetype.startsWith('image/') || imageExts.includes(ext)) {
       type = 'image';
-    } else if (file.mimetype.startsWith('video/')) {
+    } else if (file.mimetype.startsWith('video/') || videoExts.includes(ext)) {
       type = 'video';
     } else {
       type = 'audio';
