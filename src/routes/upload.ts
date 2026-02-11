@@ -33,7 +33,12 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024 // 50MB limit
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webp', 'audio/mpeg', 'audio/wav', 'audio/ogg'];
+    const allowedTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'image/heic', 'image/heif', 'image/bmp', 'image/tiff', 'image/svg+xml',
+      'video/mp4', 'video/webm', 'video/quicktime',
+      'audio/mpeg', 'audio/wav', 'audio/ogg'
+    ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
