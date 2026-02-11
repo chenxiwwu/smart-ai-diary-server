@@ -16,6 +16,8 @@ const db = new Database(dbPath);
 
 // Enable WAL mode for better performance
 db.pragma('journal_mode = WAL');
+// Enable foreign key constraints (required for ON DELETE CASCADE to work)
+db.pragma('foreign_keys = ON');
 
 // Create tables
 db.exec(`

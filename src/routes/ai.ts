@@ -7,13 +7,29 @@ const router = Router();
 // Generate "My Day" summary
 router.post('/summary', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    const { date } = req.body;
+    const { todos, expenses, insight } = req.body;
 
-    if (!date) {
-      return res.status(400).json({ error: 'Date is required' });
-    }
+    // 拼接内容描述
+    const todosText = (todos || [])
+      .map((t: any) => `- ${t.text}（${t.completed ? '已完成' : '未完成'}）`)
+      .join('\n');
+    const expensesText = (expenses || [])
+      .map((e: any) => `- ${e.item}: ¥${e.amount}`)
+      .join('\n');
+    const thoughts = (insight || '').replace(/<[^>]*>/g, '').trim() || '无';
 
-    const summary = await generateMyDaySummary(req.user!.id, date);
+    const contentDescription = `
+【待办事项】
+${todosText || '无'}
+
+【今日开销】
+${expensesText || '无'}
+
+【心情感悟】
+${thoughts}
+    `.trim();
+
+    const summary = await generateMyDaySummary(contentDescription);
 
     res.json({ summary });
   } catch (error) {
@@ -25,13 +41,13 @@ router.post('/summary', authMiddleware, async (req: AuthRequest, res: Response) 
 // Generate insight based on user's thoughts
 router.post('/insight', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    const { date, prompt } = req.body;
+    const { entryInsight, prompt } = req.body;
 
-    if (!date || !prompt) {
-      return res.status(400).json({ error: 'Date and prompt are required' });
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    const insight = await generateInsight(req.user!.id, date, prompt);
+    const insight = await generateInsight(entryInsight || '', prompt);
 
     res.json({ insight });
   } catch (error) {
