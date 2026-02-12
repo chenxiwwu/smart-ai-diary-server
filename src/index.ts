@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.js';
 import entriesRoutes from './routes/entries.js';
 import uploadRoutes from './routes/upload.js';
 import aiRoutes from './routes/ai.js';
+import linkPreviewRoutes from './routes/link-preview.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/entries', entriesRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/link-preview', linkPreviewRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
