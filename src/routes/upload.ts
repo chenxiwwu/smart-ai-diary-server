@@ -3,7 +3,6 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import sharp from 'sharp';
 import db from '../db/database.js';
 import { AuthRequest, authMiddleware } from '../middleware/auth.js';
 import { fileURLToPath } from 'url';
@@ -82,10 +81,16 @@ router.post('/', authMiddleware, upload.single('file'), async (req: AuthRequest,
     let finalFilename = file.filename;
     if (['.heic', '.heif'].includes(ext)) {
       try {
+        const heicConvert = (await import('heic-convert')).default;
+        const inputBuffer = fs.readFileSync(file.path);
+        const outputBuffer = await heicConvert({
+          buffer: inputBuffer,
+          format: 'JPEG',
+          quality: 0.9
+        });
         const jpegFilename = `${uuidv4()}.jpg`;
         const jpegPath = path.join(uploadsDir, jpegFilename);
-        await sharp(file.path).jpeg({ quality: 90 }).toFile(jpegPath);
-        // Remove original HEIC file
+        fs.writeFileSync(jpegPath, Buffer.from(outputBuffer));
         fs.unlinkSync(file.path);
         finalFilename = jpegFilename;
       } catch (convertErr) {
