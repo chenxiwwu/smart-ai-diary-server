@@ -3,6 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import sharp from 'sharp';
 import db from '../db/database.js';
 import { AuthRequest, authMiddleware } from '../middleware/auth.js';
 import { fileURLToPath } from 'url';
@@ -77,7 +78,22 @@ router.post('/', authMiddleware, upload.single('file'), async (req: AuthRequest,
       type = 'audio';
     }
 
-    const fileUrl = `/uploads/${file.filename}`;
+    // Convert HEIC/HEIF to JPEG for browser compatibility
+    let finalFilename = file.filename;
+    if (['.heic', '.heif'].includes(ext)) {
+      try {
+        const jpegFilename = `${uuidv4()}.jpg`;
+        const jpegPath = path.join(uploadsDir, jpegFilename);
+        await sharp(file.path).jpeg({ quality: 90 }).toFile(jpegPath);
+        // Remove original HEIC file
+        fs.unlinkSync(file.path);
+        finalFilename = jpegFilename;
+      } catch (convertErr) {
+        console.error('HEIC conversion failed, keeping original:', convertErr);
+      }
+    }
+
+    const fileUrl = `/uploads/${finalFilename}`;
     const mediaId = uuidv4();
 
     // If entryId not provided, create or get entry for the date
